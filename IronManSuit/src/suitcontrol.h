@@ -41,9 +41,6 @@ void processLeds();
 // Servo control with PWM
 void processServos();
 
-// Play sounds
-void processSounds();
-
 // Change effects state
 void processEffects();
 

@@ -101,7 +101,7 @@
     #define BTN0_BIT              2
     #define BTN0_IS_PRESSED_LOW   0
                                
-    // BTN 1 - PC1 - (pin A1) - Chest
+    // BTN 1 - PC1 - (pin A1) - Eyes/Chest
     #define BTN1_PORT             PORTC
     #define BTN1_PIN              PINC
     #define BTN1_DDR              DDRC

@@ -37,14 +37,9 @@ typedef struct button_struct_s {
 } button_struct_t;
 
 
-//static button_struct_t helmet_btn;
-//static button_struct_t chest_btn;
-//static button_struct_t left_hand_btn;
-//static button_struct_t right_hand_btn;
-
 // Buttons:
 // 0 - helmet
-// 1 - chest
+// 1 - eyes/chest
 // 2 - left
 // 3 - right
 static button_struct_t buttons[4];
@@ -54,11 +49,10 @@ static button_struct_t buttons[4];
 // ****************************************************************************
 // Events
 // ****************************************************************************
-bool helmet_toggle; // Just toggle eye LEDs
-bool helmet_move;   // Effect for helmet - open/close
+bool helmet_move;   // Open/close
 
-bool chest_toggle;  // Just toggle chest led 
-bool chest_effect;  // Toggle chest led with effect
+bool eyes_toggle;  // Just toggle eye leds 
+bool chest_toggle;  // Just toggle chest leds 
 
 bool left_toggle;   // Just toggle left hand LED
 bool left_effect;   // Toggle left hand LED with effect
@@ -107,10 +101,10 @@ void checkPressed()
              ((i == 1) && BSP_BTN1_IS_PRESSED()) ||
              ((i == 2) && BSP_BTN2_IS_PRESSED()) ||
              ((i == 3) && BSP_BTN3_IS_PRESSED()) )    {
+            BSP_timer_start_ms(TMR_BTN_CHECK, SUIT_BUTTON_CHECK_MS, SWTIMER_PERIODIC, checkReleased);
+            BSP_TRACE("Button %d pressed", i);            
             buttons[i].is_pressed = true;
             buttons[i].event = BTN_WAIT_RELEASE;
-            BSP_timer_start_ms(TMR_BTN_CHECK, SUIT_BUTTON_CHECK_MS, SWTIMER_PERIODIC, checkReleased);
-            //BSP_TRACE("Button %d pressed", i);
         }
     }
     
@@ -133,14 +127,14 @@ void checkReleased()
              ((i == 2) && (! BSP_BTN2_IS_PRESSED())) ||
              ((i == 3) && (! BSP_BTN3_IS_PRESSED())) )    {
             BSP_timer_stop(TMR_BTN_CHECK);
-            //BSP_TRACE("Button released", 0);
+            BSP_TRACE("Button released", 0);
             buttons[i].is_pressed = false;
             buttons[i].counter = 0;
-            buttons[i].event = BTN_SHORT_CLICK;  // button released - short click detected
+            buttons[i].event = BTN_SHORT_CLICK;  // short click detected
         }
         else if (buttons[i].counter * SUIT_BUTTON_CHECK_MS >= SUIT_BUTTON_LONG_MS) {
             BSP_timer_stop(TMR_BTN_CHECK);
-            //BSP_TRACE("Button timeout (counter %d)", buttons[0].counter);
+            BSP_TRACE("Button timeout (counter %d)", buttons[0].counter);
             buttons[i].is_pressed = false;
             buttons[i].counter = 0;
             buttons[i].event = BTN_LONG_CLICK;   // time is over - long click detected
@@ -160,23 +154,21 @@ void processButtonEvent()
     if (buttons[0].event == BTN_SHORT_CLICK) {
         buttons[0].event = BTN_NO_EVENT;
         BSP_TRACE("Helmet short click", 0);
-        helmet_toggle = true;
+        helmet_move = true;
     }
     else if (buttons[0].event == BTN_LONG_CLICK) {
-        buttons[0].event = BTN_NO_EVENT;
-        BSP_TRACE("Helmet long click", 0);
-        helmet_move = true;
+        // no events
     }   
 
     if (buttons[1].event == BTN_SHORT_CLICK) {
         buttons[1].event = BTN_NO_EVENT;
-        BSP_TRACE("Chest short click", 0);
-        chest_toggle = true;
+        BSP_TRACE("Eyes/Chest short click", 0);
+        eyes_toggle = true;
     }
     else if (buttons[1].event == BTN_LONG_CLICK) {
         buttons[1].event = BTN_NO_EVENT;
-        BSP_TRACE("Chest long click", 0);
-        chest_effect = true;
+        BSP_TRACE("Eyes/Chest long click", 0);
+        chest_toggle = true;
     }
      
     if (buttons[2].event == BTN_SHORT_CLICK) {
@@ -222,48 +214,172 @@ void processServos()
     
 }
 
+
+
+
+
+
+
 // ****************************************************************************
-// Play sounds
+// LEDs on/off with fading
 // ****************************************************************************
-void processSounds() {
+
+void delayMs(uint16_t ms) 
+{  
+    for (uint16_t i; i < ms; ++i ) {
+        _delay_ms(1);
+    }
+}  
+
+
+
+#define FADE_STEP_MS 10
+#define FADE_GRADATIONS 4
+ 
+const uint8_t fade_gradation[FADE_GRADATIONS] = { /*0*/ 1, 2, 3, 6 /*10*/ };
+ 
+ 
+ void pwm_up_down (const uint16_t pwm_table[], int16_t size, uint16_t delay)
+ {
+     int16_t tmp;
+     
+     for (tmp = 0; tmp < size; tmp++)
+     {
+         OCR1A = pgm_read_word (& pwm_table[tmp]);
+         my_delay (delay);
+     }
+     
+     for (tmp = size-1; tmp >= 0; tmp--)
+     {
+         OCR1A = pgm_read_word (& pwm_table[tmp]);
+         my_delay (delay);
+     }
+ }
+ 
+ 
+void ledFadeOn(uint8_t led_number, uint16_t time_ms)
+{
+    if (time_ms >= 50) {
+        
+        uint16_t steps = time_ms / FADE_STEP_MS;
+        uint16_t same_steps = steps / FADE_GRADATIONS;
+        
+        
+        for (uint8_t i = 0; i < FADE_GRADATIONS; ++i) {
+            for (uint8_t j = 0; j < same_steps; ++j) {
+                
+                switch (led_number) {
+                    case 0: BSP_LED0_ON(); break;
+                    case 1: BSP_LED1_ON(); break;
+                    case 2: BSP_LED2_ON(); break;
+                    case 3: BSP_LED3_ON(); break;
+                    case 4: BSP_LED4_ON(); break;
+                }
+                    
+                delayMs(fade_gradation[i]);
+                
+                switch (led_number) {
+                    case 0: BSP_LED0_OFF(); break;
+                    case 1: BSP_LED1_OFF(); break;
+                    case 2: BSP_LED2_OFF(); break;
+                    case 3: BSP_LED3_OFF(); break;
+                    case 4: BSP_LED4_OFF(); break;
+                }
+                
+                delayMs(FADE_STEP_MS - fade_gradation[i]);      
+            }
+        }            
+    }
     
+    switch (led_number) {
+        case 0: BSP_LED0_ON(); break;
+        case 1: BSP_LED1_ON(); break;
+        case 2: BSP_LED2_ON(); break;
+        case 3: BSP_LED3_ON(); break;
+        case 4: BSP_LED4_ON(); break;
+    }
 }
+
+void ledFadeOff(uint8_t led_number, uint16_t time_ms)
+{
+    if (time_ms >= 50) {
+        
+        uint16_t steps = time_ms / FADE_STEP_MS;
+        uint16_t same_steps = steps / FADE_GRADATIONS;
+        
+        
+        for (uint8_t i = 0; i < FADE_GRADATIONS; ++i) {
+            for (uint8_t j = 0; j < same_steps; ++j) {
+                
+                switch (led_number) {
+                    case 0: BSP_LED0_OFF(); break;
+                    case 1: BSP_LED1_OFF(); break;
+                    case 2: BSP_LED2_OFF(); break;
+                    case 3: BSP_LED3_OFF(); break;
+                    case 4: BSP_LED4_OFF(); break;
+                }
+                delayMs(fade_gradation[i]);
+                
+                switch (led_number) {
+                    case 0: BSP_LED0_ON(); break;
+                    case 1: BSP_LED1_ON(); break;
+                    case 2: BSP_LED2_ON(); break;
+                    case 3: BSP_LED3_ON(); break;
+                    case 4: BSP_LED4_ON(); break;
+                }
+                
+                delayMs(FADE_STEP_MS - fade_gradation[i]);
+            }
+        }
+    }
+    
+    switch (led_number) {
+        case 0: BSP_LED0_OFF(); break;
+        case 1: BSP_LED1_OFF(); break;
+        case 2: BSP_LED2_OFF(); break;
+        case 3: BSP_LED3_OFF(); break;
+        case 4: BSP_LED4_OFF(); break;
+    }
+}
+
+
 
 // ****************************************************************************
 // Change effects state
 // ****************************************************************************
 void processEffects()
-{
-    if (helmet_toggle) {    // Just toggle eye LEDs
-        helmet_toggle = false;
-        BSP_LED0_TOGGLE(); 
-    }
-    
-    if (helmet_move) {      // Effect for helmet - open/close
+{   
+    if (helmet_move) {      // Helmet open/close
         
+    }
+ 
+    if (eyes_toggle) {      // Just toggle eye LEDs
+        eyes_toggle = false;       
+        if (BSP_LED0_IS_ON())  ledFadeOff(0, 500);
+        else                   ledFadeOn(0, 500);
     }
     
     if (chest_toggle) {     // Just toggle chest led
         chest_toggle = false;
-        BSP_LED1_TOGGLE();
+        if (BSP_LED1_IS_ON())  ledFadeOff(1, 1000);
+        else                   ledFadeOn(1, 1000);
     }
     
-    if (chest_effect) {     // Toggle chest led with effect
-        
-    }
-    
+   
     if (left_toggle) {      // Just toggle left hand LED
         left_toggle = false;
-        BSP_LED2_TOGGLE();
-    }
-    
-    if (left_effect) {      // Toggle left hand LED with effect
-        
+        if (BSP_LED2_IS_ON())  ledFadeOff(2, 1500);
+        else                   ledFadeOn(2, 1500);
     }
 
     if (right_toggle) {      // Just toggle right hand LED
         right_toggle = false;
-        BSP_LED3_TOGGLE();
+        if (BSP_LED3_IS_ON())  ledFadeOff(3, 2000);
+        else                   ledFadeOn(3, 2000);
+    }
+    
+    if (left_effect) {      // Toggle left hand LED with effect
+            
     }
     
     if (right_effect) {      // Toggle right hand LED with effect

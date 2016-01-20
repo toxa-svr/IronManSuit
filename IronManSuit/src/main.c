@@ -61,10 +61,7 @@ int main(void)
          
          // Process LEDs
          processLeds();
-         
-         // Process sounds
-         processSounds();
-         
+                 
          // Process effects 
          processEffects();
          

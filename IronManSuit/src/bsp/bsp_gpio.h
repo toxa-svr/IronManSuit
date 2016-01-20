@@ -47,7 +47,7 @@
 #define _LED_ON(port,bit,ddr,pin,low)        { if(low) {HAL_GPIO_OUT_DN(port,bit);          }else{ HAL_GPIO_OUT_UP(port,bit);}} 
 #define _LED_OFF(port,bit,ddr,pin,low)       { if(low) {HAL_GPIO_OUT_UP(port,bit);          }else{ HAL_GPIO_OUT_DN(port,bit);}}
 #define _LED_TOGGLE(port,bit,ddr,pin,low)    { HAL_GPIO_OUT_TOGGLE(port,bit);}
-#define _LED_IS_ON(port,bit,ddr,pin,low)     ((low) ? (!HAL_GPIO_IS_UP(pin,biHAL_t)) : HAL_GPIO_IS_UP(pin,bit))
+#define _LED_IS_ON(port,bit,ddr,pin,low)     ((low) ? (!HAL_GPIO_IS_UP(pin,bit)) : HAL_GPIO_IS_UP(pin,bit))
 
 #define _BTN_INIT(port,bit,ddr,pin,low)      { HAL_GPIO_INIT_INP_ZZ(port,ddr,bit);}
 #define _BTN_IS_PRESSED(port,bit,ddr,pin,low) ((low) ? (!HAL_GPIO_IS_UP(pin,bit)) : HAL_GPIO_IS_UP(pin,bit))
