@@ -43,12 +43,14 @@ int main(void)
     BSP_uart_enable();
     
     BSP_ALL_INT_ENABLE();
+
     BSP_TRACE("\r\n\r\nIRON MAN SUIT", 0);
     BSP_TRACE("Compiled: %s, %s", __DATE__, __TIME__);
     
-    
+  
 	while (1) 
     {
+           
          // Process software timers
          BSP_timer_process_all();
 
@@ -66,8 +68,8 @@ int main(void)
          processEffects();
          
          // Sleep
-         processSleep();
-         
+         processSleep(); 
+
     }
 	
 	return 0;
