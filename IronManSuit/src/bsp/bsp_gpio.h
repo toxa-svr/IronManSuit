@@ -195,7 +195,7 @@
                             (defined LED5_IS_ACTIVE_LOW))
 #if (_LED5_DEFINES_NUM_ == 5)
     // All params are defined. Define control macros for this LED
-    #define __LED4_IS_DEFINED
+    #define __LED5_IS_DEFINED
     #define BSP_LED5_ON()             _LED_ON     (LED5_PORT,LED5_BIT,LED5_DDR,LED5_PIN,LED5_IS_ACTIVE_LOW)
     #define BSP_LED5_OFF()            _LED_OFF    (LED5_PORT,LED5_BIT,LED5_DDR,LED5_PIN,LED5_IS_ACTIVE_LOW)
     #define BSP_LED5_TOGGLE()         _LED_TOGGLE (LED5_PORT,LED5_BIT,LED5_DDR,LED5_PIN,LED5_IS_ACTIVE_LOW)
@@ -213,11 +213,62 @@
 #endif
 
 
+//-------------------------------------------------------------------------------
+// Check all params for LED6 are defined
+#define _LED6_DEFINES_NUM_ ((defined LED6_PORT)      + \
+							(defined LED6_BIT)       + \
+							(defined LED6_DDR)       + \
+							(defined LED6_PIN)       + \
+							(defined LED6_IS_ACTIVE_LOW))
+#if (_LED6_DEFINES_NUM_ == 5)
+	// All params are defined. Define control macros for this LED
+	#define __LED6_IS_DEFINED
+	#define BSP_LED6_ON()             _LED_ON     (LED6_PORT,LED6_BIT,LED6_DDR,LED6_PIN,LED6_IS_ACTIVE_LOW)
+	#define BSP_LED6_OFF()            _LED_OFF    (LED6_PORT,LED6_BIT,LED6_DDR,LED6_PIN,LED6_IS_ACTIVE_LOW)
+	#define BSP_LED6_TOGGLE()         _LED_TOGGLE (LED6_PORT,LED6_BIT,LED6_DDR,LED6_PIN,LED6_IS_ACTIVE_LOW)
+	#define BSP_LED6_IS_ON()          _LED_IS_ON  (LED6_PORT,LED6_BIT,LED6_DDR,LED6_PIN,LED6_IS_ACTIVE_LOW)
+	#define BSP_LED6_INIT()           _LED_INIT   (LED6_PORT,LED6_BIT,LED6_DDR,LED6_PIN,LED6_IS_ACTIVE_LOW)
+#elif (_LED6_DEFINES_NUM_ == 0)
+	// LED is not defined
+	#define BSP_LED6_ON()      {}  // no LED
+	#define BSP_LED6_OFF()     {}  // no LED
+	#define BSP_LED6_TOGGLE()  {}  // no LED
+	#define BSP_LED6_IS_ON()   (0) // no LED
+	#define BSP_LED6_INIT()    {}  // no LED
+#else
+	#error "ERROR: For LED 6 should be defined 5 params: LED6_PORT, LED6_BIT, LED6_DDR, LED6_PIN, LED6_IS_ACTIVE_LOW"
+#endif
+
+//-------------------------------------------------------------------------------
+// Check all params for LED7 are defined
+#define _LED7_DEFINES_NUM_ ((defined LED7_PORT)      + \
+							(defined LED7_BIT)       + \
+							(defined LED7_DDR)       + \
+							(defined LED7_PIN)       + \
+							(defined LED7_IS_ACTIVE_LOW))
+#if (_LED7_DEFINES_NUM_ == 5)
+	// All params are defined. Define control macros for this LED
+	#define __LED7_IS_DEFINED
+	#define BSP_LED7_ON()             _LED_ON     (LED7_PORT,LED7_BIT,LED7_DDR,LED7_PIN,LED7_IS_ACTIVE_LOW)
+	#define BSP_LED7_OFF()            _LED_OFF    (LED7_PORT,LED7_BIT,LED7_DDR,LED7_PIN,LED7_IS_ACTIVE_LOW)
+	#define BSP_LED7_TOGGLE()         _LED_TOGGLE (LED7_PORT,LED7_BIT,LED7_DDR,LED7_PIN,LED7_IS_ACTIVE_LOW)
+	#define BSP_LED7_IS_ON()          _LED_IS_ON  (LED7_PORT,LED7_BIT,LED7_DDR,LED7_PIN,LED7_IS_ACTIVE_LOW)
+	#define BSP_LED7_INIT()           _LED_INIT   (LED7_PORT,LED7_BIT,LED7_DDR,LED7_PIN,LED7_IS_ACTIVE_LOW)
+#elif (_LED7_DEFINES_NUM_ == 0)
+	// LED is not defined
+	#define BSP_LED7_ON()      {}  // no LED
+	#define BSP_LED7_OFF()     {}  // no LED
+	#define BSP_LED7_TOGGLE()  {}  // no LED
+	#define BSP_LED7_IS_ON()   (0) // no LED
+	#define BSP_LED7_INIT()    {}  // no LED
+#else
+	#error "ERROR: For LED 7 should be defined 5 params: LED7_PORT, LED7_BIT, LED7_DDR, LED7_PIN, LED7_IS_ACTIVE_LOW"
+#endif
 
 
 //-------------------------------------------------------------------------------
 // Total number of LEDs
-#define LEDS_NUM ((defined __LED0_IS_DEFINED) + (defined __LED1_IS_DEFINED) + (defined __LED2_IS_DEFINED) + (defined __LED3_IS_DEFINED) + (defined __LED4_IS_DEFINED))
+#define LEDS_NUM ((defined __LED0_IS_DEFINED) + (defined __LED1_IS_DEFINED) + (defined __LED2_IS_DEFINED) + (defined __LED3_IS_DEFINED) + (defined __LED4_IS_DEFINED) + (defined __LED5_IS_DEFINED) + (defined __LED6_IS_DEFINED) + (defined __LED7_IS_DEFINED))
 #if (LEDS_NUM == 0)
     #warning "WARNING: All LEDs are disabled"
 #endif

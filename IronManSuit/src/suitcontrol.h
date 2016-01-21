@@ -25,6 +25,9 @@
 
 
 
+#define SUIT_LEDS_OFF()  { BSP_LED0_OFF(); BSP_LED1_OFF(); BSP_LED2_OFF(); BSP_LED3_OFF(); }
+#define SUIT_LEDS_ON()   { BSP_LED0_ON();  BSP_LED1_ON();  BSP_LED2_ON();  BSP_LED3_ON(); }
+
 
 // ****************************************************************************
 // Event processing

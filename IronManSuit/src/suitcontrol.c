@@ -229,7 +229,7 @@ void processServos()
 void delayMs(uint16_t ms) 
 {  
     if (ms) {    
-        for (uint16_t i; i < ms; ++i ) {
+        for (uint16_t i = 0; i < ms; ++i ) {
             _delay_ms(1);
         }
     }    
@@ -239,7 +239,7 @@ void delayMs(uint16_t ms)
 void delayUs_x100(uint16_t us_x100)
 {
     if (us_x100) {
-        for (uint16_t i; i < us_x100; ++i ) {
+        for (uint16_t i = 0; i < us_x100; ++i ) {
             _delay_us(100);
         }
     }
@@ -351,31 +351,55 @@ static void ledFadeOff(uint8_t led_number, uint16_t time_ms)
 // ****************************************************************************
 // Helmet with servos
 // ****************************************************************************
+#define SERVO_STEP_MS 20UL
+#define SERVO_GRADATIONS 20UL // 1000us 1100us ... 1900us
+
+#define SUIT_SERVO1_OPEN_USx100   19 // 1900us
+#define SUIT_SERVO1_CLOSE_USx100  14 // 1400us
+
+#define SUIT_SERVO2_OPEN_USx100   19 // 1900us
+#define SUIT_SERVO2_CLOSE_USx100  14 // 1400us
+
 static bool helmet_is_open = 1;
 
-static void helmet_toggle() 
-{
-    uint16_t dst_pwm_us_x100;
-    
+
+static void helmet_close() 
+{    
     BSP_LED4_ON();
     _delay_ms(100);
-    
-    if (helmet_is_open) {
-        dst_pwm_us_x100 = 10; // 1000ms 
-    } 
-    else {
-        dst_pwm_us_x100 = 20; // 2000ms 
-    }
-    
-    
-    
+   
+   
+	
+    uint16_t steps = 2000 / SERVO_STEP_MS;
+    uint16_t same_steps = steps / SERVO_GRADATIONS;
+        
+        
+//    for (uint8_t i = 0; i < FADE_GRADATIONS; ++i) {
+	    for (uint8_t j = 0; j < 100/*same_steps*/; ++j) {
+		        
+			BSP_LED6_ON();
+						        
+		    delayUs_x100(SUIT_SERVO1_OPEN_USx100 /*- i*/);
+		        
+		    BSP_LED6_OFF();
+		      
+			_delay_ms(19);    
+		    //delayUs_x100(SERVO_STEP_MS*10 - (SUIT_SERVO1_OPEN_USx100/* - i*/));
+	    }
+//    }
+	
+	
+    _delay_ms(500);
     BSP_LED4_OFF();
     _delay_ms(100);
     
 }
 
 
-
+static void helmet_toggle() {
+	if (helmet_is_open) helmet_close();
+	else                helmet_open();
+}
 
 // ****************************************************************************
 // Change effects state
@@ -385,6 +409,7 @@ void processEffects()
     
     if (helmet_move) {      // Helmet open/close
         helmet_move = false;
+		helmet_toggle();
         BSP_TRACE("Event (helmet_move) processed", 0);    
     }
  

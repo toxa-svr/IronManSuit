@@ -21,6 +21,7 @@
 
 
 
+
 int main(void)
 {
     // Disable clocks for blocks which will be never used
@@ -34,7 +35,16 @@ int main(void)
     BSP_BTNS_INIT();
     BSP_LEDS_INIT();
     BSP_LEDS_OFF();
-    BSP_LEDS_TEST_BLINK();
+
+
+	SUIT_LEDS_ON();
+	_delay_ms(100);
+	SUIT_LEDS_OFF();
+	_delay_ms(200);
+	SUIT_LEDS_ON();
+	_delay_ms(100);
+	SUIT_LEDS_OFF();
+
 
     BSP_timer_init(); 
     BSP_extint_init(0, true);
