@@ -24,8 +24,9 @@ uint8_t i_can_sleep = 1;
 void processSleep()
 {
     if (!i_can_sleep)
-    return;
+        return;
     
+    _delay_ms(100);
     BSP_POWER_SAVE_MODE();
 }
 
@@ -376,7 +377,7 @@ ISR (TIMER1_COMPB_vect) {
 
 
 
-static void helmet_toggle(uint16_t time_ms) 
+static void helmet_toggle() 
 {
     
     BSP_USE_CRITICAL();
@@ -451,7 +452,7 @@ void processEffects()
     
     if (helmet_move) {      // Helmet open/close
         helmet_move = false;
-		helmet_toggle(2000);
+		helmet_toggle();
         BSP_TRACE("Event (helmet_move) processed", 0);    
     }
  
@@ -464,8 +465,8 @@ void processEffects()
     
     if (chest_toggle) {     // Just toggle chest led
         chest_toggle = false;
-        if (BSP_LED1_IS_ON())  ledFadeOff(1, 1500);
-        else                   ledFadeOn(1, 1500);
+        if (BSP_LED1_IS_ON())  ledFadeOff(1, 1000);
+        else                   ledFadeOn(1, 1000);
         BSP_TRACE("Event (chest_toggle) processed", 0);
     }
    
@@ -497,5 +498,9 @@ void processEffects()
         BSP_TRACE("Event (right_effect) processed", 0);
     }
 
-    i_can_sleep = 1;
+ 
+    // Sleep only if all LEDs are switched off
+    if ((i_can_sleep == 0) && (!BSP_LED0_IS_ON()) && (!BSP_LED1_IS_ON()) && (!BSP_LED2_IS_ON()) && (!BSP_LED3_IS_ON())) {
+        i_can_sleep = 1;   
+    }
 }
