@@ -379,7 +379,14 @@ ISR (TIMER1_COMPB_vect) {
 
 static void helmet_toggle() 
 {
-    
+    // Switch off all LEDs
+	bool led0_state_tmp = BSP_LED0_IS_ON();
+	bool led1_state_tmp = BSP_LED1_IS_ON();
+	bool led2_state_tmp = BSP_LED2_IS_ON();
+	bool led3_state_tmp = BSP_LED3_IS_ON();
+	SUIT_LEDS_OFF();
+	
+	
     BSP_USE_CRITICAL();
     
     
@@ -438,6 +445,13 @@ static void helmet_toggle()
     // Turn off Servo power
     BSP_LED4_OFF();
     
+	
+	// Restore LEDS state
+	if (led0_state_tmp) ledFadeOn(0, 100);
+	if (led1_state_tmp) ledFadeOn(1, 100);
+	if (led2_state_tmp) ledFadeOn(2, 100);
+	if (led3_state_tmp) ledFadeOn(3, 100);
+	
     
     // Toggle flag
     if (helmet_is_open) helmet_is_open = false;

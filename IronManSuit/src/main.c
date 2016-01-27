@@ -71,7 +71,7 @@ int main(void)
          processEffects();
          
          // Sleep
-         processSleep(); 
+         //processSleep(); 
 
     }
 	
