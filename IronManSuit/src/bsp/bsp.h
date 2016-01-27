@@ -90,21 +90,20 @@
     #define LED5_BIT              7
     #define LED5_IS_ACTIVE_LOW    0
         
-    // LED 6 - PD5 - (pin D5) - Servo 1 pwm output
+    // LED 6 - PD3 - (pin D3) - Servo 1 pwm output
     #define LED6_PORT             PORTD
     #define LED6_PIN              PIND
     #define LED6_DDR              DDRD
-    #define LED6_BIT              5
+    #define LED6_BIT              3
     #define LED6_IS_ACTIVE_LOW    0
-
-/*	
-	// LED 7 - PD7 - (pin D7) - Servo 2 pwm output
-	#define LED5_PORT             PORTD
-	#define LED5_PIN              PIND
-	#define LED5_DDR              DDRD
-	#define LED5_BIT              7
-	#define LED5_IS_ACTIVE_LOW    0
-*/		
+	
+	// LED 7 - PB0 - (pin D8) - Servo 2 pwm output
+	#define LED7_PORT             PORTB
+	#define LED7_PIN              PINB
+	#define LED7_DDR              DDRB
+	#define LED7_BIT              0
+	#define LED7_IS_ACTIVE_LOW    0
+	
 		
 		
     

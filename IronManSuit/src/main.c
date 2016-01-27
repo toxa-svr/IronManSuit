@@ -27,10 +27,9 @@ int main(void)
     // Disable clocks for blocks which will be never used
     POWER_ALL_DISABLE();
     POWER_UART_ENABLE();
-    POWER_ADC_ENABLE();
+//    POWER_ADC_ENABLE();
     POWER_TIMER0_ENABLE();
     POWER_TIMER1_ENABLE();
-    POWER_TIMER2_ENABLE();
 
     BSP_BTNS_INIT();
     BSP_LEDS_INIT();
@@ -40,7 +39,7 @@ int main(void)
 	SUIT_LEDS_ON();
 	_delay_ms(100);
 	SUIT_LEDS_OFF();
-	_delay_ms(200);
+	_delay_ms(300);
 	SUIT_LEDS_ON();
 	_delay_ms(100);
 	SUIT_LEDS_OFF();
@@ -64,16 +63,10 @@ int main(void)
          // Process software timers
          BSP_timer_process_all();
 
-         // Process battery measurement
-         processBatteryControl();
-         
          // Process buttons
          checkPressed();
          processButtonEvent();
-         
-         // Process LEDs
-         processLeds();
-                 
+                          
          // Process effects 
          processEffects();
          

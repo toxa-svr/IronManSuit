@@ -38,17 +38,8 @@ void checkPressed();
 void checkReleased();
 void processButtonEvent();
 
-// Change LEDs state
-void processLeds();
-
-// Servo control with PWM
-void processServos();
-
 // Change effects state
 void processEffects();
-
-// Battery voltage measurement
-void processBatteryControl();
 
 // Check state and go to the sleep mode
 void processSleep();

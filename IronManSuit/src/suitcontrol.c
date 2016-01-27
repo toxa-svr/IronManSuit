@@ -16,6 +16,18 @@
 #include "suitcontrol.h" 
 
 
+// ****************************************************************************
+// Check state and go to the sleep mode
+// ****************************************************************************
+uint8_t i_can_sleep = 1;
+
+void processSleep()
+{
+    if (!i_can_sleep)
+    return;
+    
+    BSP_POWER_SAVE_MODE();
+}
 
 
 
@@ -86,7 +98,6 @@ void EXT_INT0_isr_handler()
 // If button is pressed - start timer and wait release
 void checkPressed() 
 {
-
     BSP_USE_CRITICAL();
     uint8_t button_pressed_isr_local;
     BSP_CRITICAL(button_pressed_isr_local = button_pressed_isr);
@@ -95,6 +106,7 @@ void checkPressed()
     if(!button_pressed_isr_local) {
         return;
     }        
+ 
     
     for (uint8_t i = 0; i < 4; ++i) {
         if ( ((i == 0) && BSP_BTN0_IS_PRESSED()) ||
@@ -105,6 +117,8 @@ void checkPressed()
             BSP_TRACE("Button %d pressed", i);            
             buttons[i].is_pressed = true;
             buttons[i].event = BTN_WAIT_RELEASE;
+            // Don't sleep until event will be processed
+            i_can_sleep = 0;
         }
     }
     
@@ -159,6 +173,7 @@ void processButtonEvent()
     else if (buttons[0].event == BTN_LONG_CLICK) {
         buttons[0].event = BTN_NO_EVENT;
         BSP_TRACE("Helmet long click", 0);
+        helmet_move = true;
     }   
 
     if (buttons[1].event == BTN_SHORT_CLICK) {
@@ -195,29 +210,6 @@ void processButtonEvent()
     }
 
 }
-
-
-
-
-// ****************************************************************************
-// Change LEDs state
-// ****************************************************************************
-void processLeds()
-{
-    
-}
-
-// ****************************************************************************
-// Servo control with PWM
-// ****************************************************************************
-void processServos()
-{
-    
-}
-
-
-
-
 
 
 
@@ -351,54 +343,104 @@ static void ledFadeOff(uint8_t led_number, uint16_t time_ms)
 // ****************************************************************************
 // Helmet with servos
 // ****************************************************************************
-#define SERVO_STEP_MS 20UL
-#define SERVO_GRADATIONS 20UL // 1000us 1100us ... 1900us
+#define SERVO_GRADATION_US 20UL // 1000us 1010us ... 
 
-#define SUIT_SERVO1_OPEN_USx100   19 // 1900us
-#define SUIT_SERVO1_CLOSE_USx100  14 // 1400us
+#define SUIT_SERVO1_OPEN_US   2300UL // increase to open
+#define SUIT_SERVO1_CLOSE_US  700UL
 
-#define SUIT_SERVO2_OPEN_USx100   19 // 1900us
-#define SUIT_SERVO2_CLOSE_USx100  14 // 1400us
+#define SUIT_SERVO2_OPEN_US   620UL // increase to close
+#define SUIT_SERVO2_CLOSE_US  2220UL
+
+#if ((SUIT_SERVO1_OPEN_US - SUIT_SERVO1_CLOSE_US)  != (SUIT_SERVO2_CLOSE_US - SUIT_SERVO2_OPEN_US))
+    #error "Check servo values"
+#endif    
+
+#define SERVO_GRADATIONS ((SUIT_SERVO1_OPEN_US - SUIT_SERVO1_CLOSE_US) / SERVO_GRADATION_US)
+
 
 static bool helmet_is_open = 1;
 
 
-static void helmet_close() 
-{    
-    BSP_LED4_ON();
-    _delay_ms(100);
-   
-   
-	
-    uint16_t steps = 2000 / SERVO_STEP_MS;
-    uint16_t same_steps = steps / SERVO_GRADATIONS;
-        
-        
-//    for (uint8_t i = 0; i < FADE_GRADATIONS; ++i) {
-	    for (uint8_t j = 0; j < 100/*same_steps*/; ++j) {
-		        
-			BSP_LED6_ON();
-						        
-		    delayUs_x100(SUIT_SERVO1_OPEN_USx100 /*- i*/);
-		        
-		    BSP_LED6_OFF();
-		      
-			_delay_ms(19);    
-		    //delayUs_x100(SERVO_STEP_MS*10 - (SUIT_SERVO1_OPEN_USx100/* - i*/));
-	    }
-//    }
-	
-	
-    _delay_ms(500);
-    BSP_LED4_OFF();
-    _delay_ms(100);
+ISR (TIMER1_OVF_vect) {
+    BSP_LED6_ON();
+    BSP_LED7_ON(); 
+}
     
+ISR (TIMER1_COMPA_vect) {
+    BSP_LED6_OFF(); 
+}
+
+ISR (TIMER1_COMPB_vect) {
+    BSP_LED7_OFF(); 
 }
 
 
-static void helmet_toggle() {
-	if (helmet_is_open) helmet_close();
-	else                helmet_open();
+
+static void helmet_toggle(uint16_t time_ms) 
+{
+    
+    BSP_USE_CRITICAL();
+    
+    
+    // Servo signals low
+    BSP_LED6_OFF();
+    BSP_LED7_OFF();
+
+    // Stop timer
+    TCCR1B = 0;
+
+    // TOP for Fast PWM = 20000. Full cycle (up-down) 20000*1us = 20000us
+    ICR1 = 20000;
+    
+    // Comparator Servo 1 and 2
+    if (helmet_is_open) {
+        OCR1A = SUIT_SERVO1_OPEN_US;
+        OCR1B = SUIT_SERVO2_OPEN_US;
+    }
+    else {
+        OCR1A = SUIT_SERVO1_CLOSE_US;
+        OCR1B = SUIT_SERVO2_CLOSE_US;
+    }
+
+    // Interrupts for timer
+    TIMSK1 = (1<<TOIE1) | (1<<OCIE1A) | (1<<OCIE1B);
+    // Fast (from 0 to ICR1)
+    // Prescaler 1MHz/1 = 1us
+    TCCR1A = (1<<WGM11);
+    TCCR1B = (1<<WGM12) | (1<<WGM13) | (1<<CS10);
+    
+    
+    // Turn on Servo power
+    BSP_LED4_ON();
+ 
+ 
+   for (uint8_t i = 0; i <= SERVO_GRADATIONS; ++i) {
+        // Comparator Servo 1 and 2
+        if (helmet_is_open) {
+            OCR1A = SUIT_SERVO1_OPEN_US - i * SERVO_GRADATION_US;
+            OCR1B = SUIT_SERVO2_OPEN_US + i * SERVO_GRADATION_US;
+        }
+        else {
+            OCR1A = SUIT_SERVO1_CLOSE_US + i * SERVO_GRADATION_US;
+            OCR1B = SUIT_SERVO2_CLOSE_US - i * SERVO_GRADATION_US;
+        }
+        _delay_ms(20);
+    }
+
+    // Stop timer
+    TCCR1B = 0;
+
+    // Servo signals low
+    BSP_LED6_OFF();
+    BSP_LED7_OFF();
+    
+    // Turn off Servo power
+    BSP_LED4_OFF();
+    
+    
+    // Toggle flag
+    if (helmet_is_open) helmet_is_open = false;
+    else                helmet_is_open = true; 
 }
 
 // ****************************************************************************
@@ -409,7 +451,7 @@ void processEffects()
     
     if (helmet_move) {      // Helmet open/close
         helmet_move = false;
-		helmet_toggle();
+		helmet_toggle(2000);
         BSP_TRACE("Event (helmet_move) processed", 0);    
     }
  
@@ -455,22 +497,5 @@ void processEffects()
         BSP_TRACE("Event (right_effect) processed", 0);
     }
 
+    i_can_sleep = 1;
 }
-
-// ****************************************************************************
-// Battery voltage measurement
-// ****************************************************************************
-void processBatteryControl()
-{
-    
-}
-
-// ****************************************************************************
-// Check state and go to the sleep mode
-// ****************************************************************************
-void processSleep()
-{
-    
-}
-
-
